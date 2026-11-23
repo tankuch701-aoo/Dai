@@ -2,8 +2,8 @@ name: Android
 
 on:
   push:
-    branches: [main]
-    tags: ['v*']
+    branches: ["**"]
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
@@ -16,40 +16,68 @@ concurrency:
 
 jobs:
   build:
+    name: Build APK
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       HAS_KEYSTORE: ${{ secrets.KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Find Android project
+        id: find
+        run: |
+          SETTINGS=$(find . -maxdepth 3 \( -name settings.gradle -o -name settings.gradle.kts \) -not -path "./.git/*" | head -n 1)
+          if [ -z "$SETTINGS" ]; then
+            echo "::error::No settings.gradle found. Upload the whole project: settings.gradle, build.gradle, gradle.properties and app_ai/."
+            find . -maxdepth 3 -not -path "./.git/*" | head -60
+            exit 1
+          fi
+          DIR=$(dirname "$SETTINGS")
+          echo "Project root: $DIR"
+          ls -la "$DIR" "$DIR/app_ai" || true
+          echo "dir=$DIR" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
 
       - name: Build debug APK
-        run: gradle :app_ai:assembleDebug --no-daemon
+        working-directory: ${{ steps.find.outputs.dir }}
+        run: gradle :app_ai:assembleDebug --stacktrace --no-daemon
 
-      - name: Lint
-        continue-on-error: true
-        run: gradle :app_ai:lintDebug --no-daemon
+      - name: List APKs
+        run: find . -name "*.apk" -print
 
       - uses: actions/upload-artifact@v4
         with:
           name: dai-debug-apk
-          path: app_ai/build/outputs/apk/debug/*.apk
+          path: ${{ steps.find.outputs.dir }}/app_ai/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Lint (report only)
+        continue-on-error: true
+        working-directory: ${{ steps.find.outputs.dir }}
+        run: gradle :app_ai:lintDebug --no-daemon
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: lint-report
-          path: app_ai/build/reports/lint-results-debug.html
+          path: ${{ steps.find.outputs.dir }}/app_ai/build/reports/lint-results-debug.html
           if-no-files-found: ignore
 
       - name: Build signed release APK
         if: startsWith(github.ref, 'refs/tags/v') && env.HAS_KEYSTORE == 'true'
+        working-directory: ${{ steps.find.outputs.dir }}
         env:
           KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -58,12 +86,10 @@ jobs:
         run: |
           echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
           export KEYSTORE_FILE="$RUNNER_TEMP/release.jks"
-          gradle :app_ai:assembleRelease --no-daemon
+          gradle :app_ai:assembleRelease --stacktrace --no-daemon
 
       - name: Publish GitHub release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            app_ai/build/outputs/apk/debug/*.apk
-            app_ai/build/outputs/apk/release/*.apk
+          files: ${{ steps.find.outputs.dir }}/app_ai/build/outputs/apk/**/*.apk
