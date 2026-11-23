@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dai</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<aside id="side">
+  <div class="side-head"><span class="brand">Dai</span></div>
+  <div id="list"></div>
+  <div class="side-foot">
+    <button class="ghost primary" id="newChat">New chat</button>
+    <button class="ghost" id="newFolder">New folder</button>
+    <button class="ghost" id="wfBtn">Workflows</button>
+    <button class="ghost" id="setBtn">Settings</button>
+  </div>
+</aside>
+
+<div id="app">
+  <header>
+    <button class="ghost" id="menu" aria-label="Chats and folders">☰</button>
+    <span class="brand">Dai</span>
+    <select id="provider" aria-label="AI provider"></select>
+  </header>
+  <div class="tools">
+    <span id="title"></span>
+    <select id="move" aria-label="Move chat to folder"></select>
+    <button class="ghost" id="export">Export</button>
+  </div>
+  <main id="chat" aria-live="polite"></main>
+  <footer>
+    <div class="inputbar">
+      <textarea id="input" rows="1" aria-label="Message"></textarea>
+      <button id="send" aria-label="Send">↑</button>
+    </div>
+  </footer>
+</div>
+
+<dialog id="dlg">
+  <h2>Settings</h2>
+  <div id="fields"></div>
+  <label>Global system prompt<textarea id="sys" rows="4"></textarea></label>
+  <div class="row"><button class="ghost" id="pChat">Chat preset</button><button class="ghost" id="pCode">Code preset</button></div>
+  <p class="note">Keys stay in this browser and go straight to the provider you pick.</p>
+  <div class="row"><button class="ghost" data-close>Close</button><button class="ghost primary" id="saveBtn">Save</button></div>
+</dialog>
+
+<dialog id="fdlg">
+  <h2>Folder</h2>
+  <label>Name<input id="fname" autocomplete="off"></label>
+  <label>System prompt for chats in this folder<textarea id="fsys" rows="4" placeholder="Optional. Replaces the global prompt."></textarea></label>
+  <div class="row"><button class="ghost" id="fdel">Delete folder</button><button class="ghost" data-close>Cancel</button><button class="ghost primary" id="fsave">Save</button></div>
+</dialog>
+
+<dialog id="wdlg">
+  <h2>Workflows</h2>
+  <p class="note">A workflow runs prompts in order. Type your input first, then tap Run.</p>
+  <div id="wflist"></div>
+  <label>New workflow name<input id="wname" autocomplete="off"></label>
+  <label>Steps (separate with a line of ---). Use {{input}} for your text and {{prev}} for the last reply.<textarea id="wsteps" rows="5"></textarea></label>
+  <div class="row"><button class="ghost" data-close>Close</button><button class="ghost primary" id="wsave">Add workflow</button></div>
+</dialog>
+<div id="toast" role="status"></div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
