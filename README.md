@@ -1,6 +1,6 @@
 <img src="docs/logo.svg" width="96" alt="Dai logo">
 
-# Dai 3.0
+# Dai 3.1
 
 Gemini chat and code assistant.
 
