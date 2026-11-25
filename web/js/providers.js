@@ -1,7 +1,5 @@
 export const PROVIDERS = {
   gemini: { label: "Gemini", model: "gemini-2.5-flash" },
-  openai: { label: "ChatGPT", model: "gpt-4o-mini" },
-  claude: { label: "Claude", model: "claude-sonnet-5-5" }
 };
 
 const JSON_H = { "Content-Type": "application/json" };

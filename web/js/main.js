@@ -44,7 +44,7 @@ function renderTools() {
 function render() {
   const el = $("#chat"), c = chat();
   if (!c.messages.length) {
-    el.innerHTML = '<div class="empty"><h1>Dai</h1><p>Chat or code with Gemini, ChatGPT and Claude. Add a key in Settings to start.</p></div>';
+    el.innerHTML = '<div class="empty"><h1>Dai</h1><p>Chat or code with Gemini. Add a key in Settings to start.</p></div>';
     return;
   }
   const near = el.scrollHeight - el.scrollTop - el.clientHeight < 90;
